@@ -30,7 +30,12 @@ export async function isAuthenticated(): Promise<boolean> {
     const response = await fetch("/api/auth/session", {
       credentials: "include",
     });
-    return response.ok;
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    return data.authenticated === true;
   } catch (error) {
     return false;
   }
@@ -48,9 +53,13 @@ export async function getCurrentUser() {
       return null;
     }
     const data = await response.json();
+    if (data.authenticated !== true || !data.user) {
+      return null;
+    }
+
     return {
-      id: data.userId,
-      email: data.email,
+      id: data.user.id,
+      email: data.user.email,
     };
   } catch (error) {
     console.error("Error getting current user:", error);

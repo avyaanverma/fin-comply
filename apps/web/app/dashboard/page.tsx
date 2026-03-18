@@ -140,21 +140,33 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      <div className="flex flex-1 overflow-hidden">
-        <div className="w-96 overflow-y-auto border-r border-border dark:border-slate-700">
+    <div className="h-[calc(100dvh-4rem)] overflow-hidden bg-background">
+      <div className="flex h-full overflow-hidden">
+        <div
+          className={`${
+            selectedThread ? 'hidden md:block' : 'block'
+          } w-full md:w-96 h-full overflow-y-auto border-r border-border dark:border-slate-700`}
+        >
           <Sidebar
             onSelectThread={setSelectedThread}
             selectedThreadId={selectedThread?.id}
             userId={user?.id}
+            onModeChange={() => setSelectedThread(null)}
           />
         </div>
-        <div className="flex-1">
+
+        <div className={`${selectedThread ? 'block' : 'hidden md:block'} flex-1 h-full`}>
           {selectedThread ? (
-            <ChatThread thread={selectedThread} onBack={() => setSelectedThread(null)} userId={user?.id} />
+            <ChatThread
+              thread={selectedThread}
+              onBack={() => setSelectedThread(null)}
+              userId={user?.id}
+            />
           ) : (
-            <div className="flex flex-col items-center justify-center h-full bg-background dark:bg-slate-900">
-              <p className="text-muted-foreground text-lg">Select a thread or start a new query.</p>
+            <div className="flex flex-col items-center justify-center h-full bg-background dark:bg-slate-900 px-6 text-center">
+              <p className="text-muted-foreground text-lg">
+                Select a thread or start a new query.
+              </p>
             </div>
           )}
         </div>

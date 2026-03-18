@@ -1,7 +1,12 @@
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db/mongodb";
 import { Message, Thread } from "@/lib/db/models";
-import { getRagAnswer, RagAnswer } from "./rag";
+import {
+  getRagAnswer,
+  getRagSummary,
+  RagAnswer,
+  RagSummaryResponse,
+} from "./rag";
 
 export class HttpError extends Error {
   status: number;
@@ -22,6 +27,25 @@ interface ProcessMessageResult {
   userMessage: Record<string, unknown>;
   aiMessage: Record<string, unknown>;
   ragAnswer: RagAnswer;
+}
+
+function normalizeSummary(response: RagSummaryResponse) {
+  const sebiTitle =
+    response["sebi-title"] ??
+    response.sebi_title ??
+    response.sebiTitle ??
+    "";
+
+  const sebiSummary =
+    response["sebi-summary"] ??
+    response.sebi_summary ??
+    response.sebiSummary ??
+    "";
+
+  return {
+    sebiTitle,
+    sebiSummary,
+  };
 }
 
 function resolveSebiContext(threadDoc: any) {
@@ -92,7 +116,35 @@ export async function processMessage({
     _id: userInsertResult.insertedId,
   };
 
-  const { sebiTitle, sebiSummary } = resolveSebiContext(threadDoc);
+  let { sebiTitle, sebiSummary } = resolveSebiContext(threadDoc);
+  if (!sebiTitle) {
+    sebiTitle = threadDoc?.title ?? "";
+  }
+
+  if (!sebiSummary) {
+    const fallbackText = content || threadDoc?.title || threadDoc?.title || "SEBI question";
+    const ragSummary = await getRagSummary({ body: fallbackText });
+    const normalized = normalizeSummary(ragSummary);
+    const derivedTitle = normalized.sebiTitle || threadDoc?.title || "";
+    const derivedSummary = normalized.sebiSummary;
+
+    if (!derivedSummary) {
+      throw new HttpError(502, "Unable to generate SEBI summary for this thread");
+    }
+
+    sebiTitle = sebiTitle || derivedTitle;
+    sebiSummary = derivedSummary;
+
+    await Thread.collection.updateOne(
+      { _id: threadObjectId },
+      {
+        $set: {
+          sebi_title: sebiTitle,
+          sebi_summary: sebiSummary,
+        },
+      },
+    );
+  }
 
   const ragAnswer = await getRagAnswer({
     sebi_title: sebiTitle,

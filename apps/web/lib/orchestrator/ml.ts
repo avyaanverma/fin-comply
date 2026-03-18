@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db/mongodb";
 import { Message, Thread } from "@/lib/db/models";
-import { getRagAnswer } from "@/lib/orchestrator/rag";
+import {
+  getRagAnswer,
+  getRagSummary,
+  RagSummaryResponse,
+} from "@/lib/orchestrator/rag";
 
 export class HttpError extends Error {
   status: number;
@@ -10,20 +14,6 @@ export class HttpError extends Error {
     super(message);
     this.status = status;
   }
-}
-
-interface RagSummaryResponse {
-  "sebi-title"?: string;
-  "sebi-summary"?: string;
-  date?: string;
-  sebi_title?: string;
-  sebi_summary?: string;
-  sebiTitle?: string;
-  sebiSummary?: string;
-}
-
-interface RagSummaryPayload {
-  body: string;
 }
 
 interface CreateContextParams {
@@ -49,33 +39,6 @@ interface QuestionResult {
   sebiSummary: string;
   userQuestion: string;
   userAnswer: string;
-}
-
-async function getRagSummary(
-  payload: RagSummaryPayload,
-): Promise<RagSummaryResponse> {
-  const baseUrl = process.env.RAG_API_URL;
-  if (!baseUrl) {
-    throw new Error("RAG_API_URL is not configured");
-  }
-
-  const endpoint = `${baseUrl.replace(/\/$/, "")}/rag/summary`;
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `RAG API request failed (${response.status}): ${errorText}`,
-    );
-  }
-
-  return response.json();
 }
 
 function normalizeSummary(response: RagSummaryResponse) {

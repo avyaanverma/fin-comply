@@ -1,9 +1,33 @@
 'use client'
 
 import { Message } from '@/lib/store'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface MessageBubbleProps {
   message: Message
+}
+
+function formatCitation(citation: unknown): string {
+  if (typeof citation === 'string') return citation
+
+  if (citation && typeof citation === 'object') {
+    const entry = citation as {
+      document_title?: string
+      title?: string
+      category?: string
+      source_url?: string
+      source?: string
+    }
+
+    const title = entry.document_title || entry.title || 'SEBI source'
+    const category = entry.category ? ` (${entry.category})` : ''
+    const source = entry.source_url || entry.source
+
+    return source ? `${title}${category} - ${source}` : `${title}${category}`
+  }
+
+  return ''
 }
 
 export function MessageBubble({ message }: MessageBubbleProps) {
@@ -24,7 +48,35 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             : 'bg-muted text-foreground dark:bg-slate-700'
         }`}
       >
-        <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+        <div className="text-sm break-words">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+              ul: ({ children }) => <ul className="list-disc pl-5 mb-2">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal pl-5 mb-2">{children}</ol>,
+              li: ({ children }) => <li className="mb-1">{children}</li>,
+              h1: ({ children }) => <h1 className="text-base font-semibold mb-2">{children}</h1>,
+              h2: ({ children }) => <h2 className="text-base font-semibold mb-2">{children}</h2>,
+              h3: ({ children }) => <h3 className="text-sm font-semibold mb-1">{children}</h3>,
+              code: ({ children }) => (
+                <code className="px-1 py-0.5 rounded bg-black/10 dark:bg-white/10">{children}</code>
+              ),
+              a: ({ children, href }) => (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline underline-offset-2"
+                >
+                  {children}
+                </a>
+              ),
+            }}
+          >
+            {message.text}
+          </ReactMarkdown>
+        </div>
 
         {message.citations && message.citations.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
@@ -37,15 +89,19 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                     : 'bg-muted-foreground/20 text-muted-foreground'
                 }`}
               >
-                📎 {citation}
+                {`Source ${idx + 1}: ${formatCitation(citation)}`}
               </span>
             ))}
           </div>
         )}
 
         {message.author && (
-          <p className={`text-xs mt-1 ${isUser ? 'text-blue-100' : 'text-muted-foreground'}`}>
-            — {message.author}
+          <p
+            className={`text-xs mt-1 ${
+              isUser ? 'text-blue-100' : 'text-muted-foreground'
+            }`}
+          >
+            {`- ${message.author}`}
           </p>
         )}
       </div>

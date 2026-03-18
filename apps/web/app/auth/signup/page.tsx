@@ -28,6 +28,12 @@ export default function SignupPage() {
       return
     }
 
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long')
+      setIsLoading(false)
+      return
+    }
+
     try {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
@@ -101,6 +107,7 @@ export default function SignupPage() {
                     id="password"
                     type="password"
                     required
+                    minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -111,6 +118,7 @@ export default function SignupPage() {
                     id="confirmPassword"
                     type="password"
                     required
+                    minLength={6}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />

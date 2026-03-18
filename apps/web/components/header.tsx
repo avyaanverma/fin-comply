@@ -45,7 +45,11 @@ export function Header() {
 
   return (
     <>
-      <div className={`flex items-center justify-between border-b border-border bg-card px-6 py-4 ${darkMode ? 'dark bg-slate-900 border-slate-700' : ''}`}>
+      <div
+        className={`h-16 flex items-center justify-between border-b border-border bg-card px-4 md:px-6 ${
+          darkMode ? 'dark bg-slate-900 border-slate-700' : ''
+        }`}
+      >
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 flex items-center justify-center text-blue-600">
             <svg
@@ -62,8 +66,12 @@ export function Header() {
           <span className="text-xl font-semibold text-foreground">FinComply</span>
         </div>
 
-        <div className="flex items-center gap-4">
-          {user && <span className="text-sm text-muted-foreground">{user.email}</span>}
+        <div className="flex items-center gap-2 md:gap-4">
+          {user && (
+            <span className="hidden md:block text-sm text-muted-foreground">
+              {user.email}
+            </span>
+          )}
 
           <button
             onClick={() => setShowUpdates(!showUpdates)}
@@ -109,16 +117,22 @@ export function Header() {
           <div className="space-y-3 max-h-64 overflow-y-auto">
             <div className="text-center py-6">
               <div className="w-12 h-12 rounded-full border-2 border-green-500 flex items-center justify-center mx-auto mb-2">
-                <span className="text-green-500 text-xl">✓</span>
+                <span className="text-green-500 text-lg font-semibold">OK</span>
               </div>
-              <p className="font-medium text-foreground">You're all caught up!</p>
-              <p className="text-sm text-muted-foreground">No new updates from SEBI at the moment</p>
+              <p className="font-medium text-foreground">You are all caught up.</p>
+              <p className="text-sm text-muted-foreground">
+                No new updates from SEBI right now.
+              </p>
             </div>
           </div>
         </div>
       )}
 
-      <ProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} userId={user?.id} />
+      <ProfileModal
+        isOpen={showProfile}
+        onClose={() => setShowProfile(false)}
+        userId={user?.id}
+      />
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </>
   )

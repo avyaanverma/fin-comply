@@ -17,6 +17,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: "Password must be at least 6 characters long" },
+        { status: 400 },
+      );
+    }
+
     // Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
@@ -68,8 +75,20 @@ export async function POST(req: NextRequest) {
     });
 
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Signup error:", error);
+
+    if (error?.name === "ValidationError") {
+      const firstError = Object.values(error.errors ?? {})[0] as
+        | { message?: string }
+        | undefined;
+
+      return NextResponse.json(
+        { error: firstError?.message || "Invalid signup data" },
+        { status: 400 },
+      );
+    }
+
     return NextResponse.json(
       { error: "Failed to create user" },
       { status: 500 },

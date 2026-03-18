@@ -1,17 +1,18 @@
 'use client'
 
 import { useStore } from '@/lib/store'
-import { Search, Plus } from 'lucide-react'
+import { Search, Plus, Sparkles, Users, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { Thread } from '@/lib/store'
 
 interface SidebarProps {
-  onSelectThread: (thread: Thread) => void
+  onSelectThread: (thread: Thread | null) => void
   selectedThreadId?: string
   userId?: string
+  onModeChange?: () => void
 }
 
-export function Sidebar({ onSelectThread, selectedThreadId, userId }: SidebarProps) {
+export function Sidebar({ onSelectThread, selectedThreadId, userId, onModeChange }: SidebarProps) {
   const { currentMode, setCurrentMode, threads, addThread } = useStore()
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -76,24 +77,36 @@ export function Sidebar({ onSelectThread, selectedThreadId, userId }: SidebarPro
       {/* Mode Toggle */}
       <div className="flex gap-2 p-4 border-b border-border dark:border-slate-700">
         <button
-          onClick={() => setCurrentMode('personal')}
+          onClick={() => {
+            setCurrentMode('personal')
+            onModeChange?.()
+          }}
           className={`flex-1 px-3 py-2 rounded-lg font-medium transition ${
             currentMode === 'personal'
               ? 'bg-primary text-primary-foreground'
               : 'text-foreground hover:bg-muted dark:hover:bg-slate-700'
           }`}
         >
-          Personal
+          <span className="inline-flex items-center gap-2">
+            <UserRound className="h-4 w-4" />
+            Personal
+          </span>
         </button>
         <button
-          onClick={() => setCurrentMode('community')}
+          onClick={() => {
+            setCurrentMode('community')
+            onModeChange?.()
+          }}
           className={`flex-1 px-3 py-2 rounded-lg font-medium transition ${
             currentMode === 'community'
               ? 'bg-primary text-primary-foreground'
               : 'text-foreground hover:bg-muted dark:hover:bg-slate-700'
           }`}
         >
-          Community
+          <span className="inline-flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Community
+          </span>
         </button>
       </div>
 
@@ -128,18 +141,20 @@ export function Sidebar({ onSelectThread, selectedThreadId, userId }: SidebarPro
         {currentMode === 'personal' && (
           <button
             onClick={handleNewChat}
-            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium transition dark:bg-blue-500 dark:hover:bg-blue-600"
+            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium transition dark:bg-blue-500 dark:hover:bg-blue-600 shadow-sm"
           >
             <Plus className="h-5 w-5" />
+            <Sparkles className="h-4 w-4" />
             New Query
           </button>
         )}
         {currentMode === 'community' && (
           <button
             onClick={() => onSelectThread({ id: 'new-community-doubt', title: 'New Community Doubt', mode: 'community', messages: [], createdAt: Date.now() })}
-            className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium transition dark:bg-green-500 dark:hover:bg-green-600"
+            className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium transition dark:bg-green-500 dark:hover:bg-green-600 shadow-sm"
           >
             <Plus className="h-5 w-5" />
+            <Sparkles className="h-4 w-4" />
             New Doubt
           </button>
         )}

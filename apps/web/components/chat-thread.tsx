@@ -2,13 +2,39 @@
 
 import { useStore, Message, Thread } from '@/lib/store'
 import { useState, useRef, useEffect } from 'react'
-import { ChevronLeft, Send } from 'lucide-react'
+import { ChevronLeft, Send, Bot, MessageSquareText } from 'lucide-react'
 import { MessageBubble } from './message-bubble'
 
 interface ChatThreadProps {
   thread: Thread | null
   onBack: () => void
   userId?: string
+}
+
+function normalizeCitations(citations: unknown): string[] {
+  if (!Array.isArray(citations)) return []
+
+  return citations
+    .map((citation) => {
+      if (typeof citation === 'string') return citation
+      if (citation && typeof citation === 'object') {
+        const entry = citation as {
+          document_title?: string
+          title?: string
+          category?: string
+          published_date?: string
+          source_url?: string
+          source?: string
+        }
+
+        const title = entry.document_title || entry.title || 'SEBI source'
+        const category = entry.category ? ` (${entry.category})` : ''
+        const source = entry.source_url || entry.source
+        return source ? `${title}${category} - ${source}` : `${title}${category}`
+      }
+      return ''
+    })
+    .filter((value) => value.length > 0)
 }
 
 export function ChatThread({ thread, onBack, userId }: ChatThreadProps) {
@@ -114,7 +140,7 @@ export function ChatThread({ thread, onBack, userId }: ChatThreadProps) {
           id: `m-${Date.now() + 1}`,
           sender: 'ai',
           text: saveData.response || 'Unable to generate response',
-          citations: saveData.citations,
+          citations: normalizeCitations(saveData.citations),
           timestamp: Date.now() + 1000,
         }
 
@@ -139,20 +165,27 @@ export function ChatThread({ thread, onBack, userId }: ChatThreadProps) {
   return (
     <div className="flex flex-col h-full bg-background dark:bg-slate-900">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border dark:border-slate-700 px-6 py-4">
+      <div className="flex items-center justify-between border-b border-border dark:border-slate-700 px-4 md:px-6 py-4 bg-card/70 backdrop-blur supports-[backdrop-filter]:bg-card/50">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="text-foreground hover:text-primary p-1">
+          <button onClick={onBack} className="text-foreground hover:text-primary p-1 md:hidden">
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <h2 className="text-lg font-semibold text-foreground">{thread.title}</h2>
+          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+            <MessageSquareText className="h-4 w-4" />
+          </div>
+          <div>
+            <h2 className="text-base md:text-lg font-semibold text-foreground">{thread.title}</h2>
+            <p className="text-xs text-muted-foreground">Live conversation</p>
+          </div>
         </div>
-        <span className="text-sm text-muted-foreground">
+        <span className="text-xs md:text-sm text-muted-foreground inline-flex items-center gap-2">
+          <Bot className="h-4 w-4" />
           {thread.mode === 'community' ? 'Community' : 'Personal'}
         </span>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-4 bg-gradient-to-b from-transparent to-muted/20">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-center text-muted-foreground">Start your conversation</p>
@@ -178,7 +211,7 @@ export function ChatThread({ thread, onBack, userId }: ChatThreadProps) {
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-border dark:border-slate-700 p-6 bg-card dark:bg-slate-800">
+      <div className="border-t border-border dark:border-slate-700 p-4 md:p-6 bg-card dark:bg-slate-800 sticky bottom-0">
         <div className="flex gap-3">
           <input
             type="text"
@@ -186,12 +219,12 @@ export function ChatThread({ thread, onBack, userId }: ChatThreadProps) {
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             placeholder="Ask a question..."
-            className="flex-1 rounded-lg border border-input bg-background px-4 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-700 dark:border-slate-600"
+            className="flex-1 rounded-xl border border-input bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-700 dark:border-slate-600"
           />
           <button
             onClick={handleSendMessage}
             disabled={isLoading || !input.trim()}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-muted text-white rounded-lg font-medium transition dark:bg-blue-500 dark:hover:bg-blue-600"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-muted text-white rounded-xl font-medium transition dark:bg-blue-500 dark:hover:bg-blue-600 shadow-sm"
           >
             <Send className="h-5 w-5" />
           </button>

@@ -117,6 +117,8 @@ export interface IThread extends Document {
   userId: mongoose.Types.ObjectId;
   title: string;
   mode: "personal" | "community";
+  sebi_title?: string;
+  sebi_summary?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -135,6 +137,12 @@ const threadSchema = new Schema<IThread>({
     type: String,
     enum: ["personal", "community"],
     required: true,
+  },
+  sebi_title: {
+    type: String,
+  },
+  sebi_summary: {
+    type: String,
   },
   createdAt: {
     type: Date,

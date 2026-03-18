@@ -1,0 +1,36 @@
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+myvenv/
+.pytest_cache/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs and runtime files
+*.log
+*.out
+*.err
+
+# Build / package artifacts
+*.zip
+
+# ML local artifacts
+apps/ml/rag_index/
+apps/ml/streamlit*.log
+apps/ml/newRag.zip
+
+# Node / Next.js
+node_modules/
+.next/
+dist/
+*.tsbuildinfo
